@@ -76,10 +76,17 @@ public class AwsSigningInterceptor implements Interceptor {
                 .removeHeader(AUTHORIZATION_HEADER)
                 .addHeader(AUTHORIZATION_HEADER, awsAuthorizationHeader)
                 .addHeader("X-Amz-Date", amzTimestamp)
+                .addHeader("x-amz-content-sha256", "".sha256())
                 .build();
 
         return chain.proceed(signedRequest);
     }
+    
+    fun String.sha256(): String {
+        val md = MessageDigest.getInstance("SHA-256")
+        return BigInteger(1, md.digest(toByteArray())).toString(16).padStart(32, '0')
+    }
+
 
     @VisibleForTesting
     String makeAWSAuthorizationHeader(ZonedDateTime timestamp, Request request, byte[] signatureKey) throws IOException {
